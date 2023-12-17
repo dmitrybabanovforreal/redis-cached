@@ -1,0 +1,23 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.1.0] - 2023-12-17
+
+### Added
+
+This is the initial release of the lib.
+
+Python cache decorator that uses Redis or KeyDB as storage. This is very handy for replicated apps (e.g. Kubernetes), AWS Lambda functions, and other stateless apps.
+
+Features:
+* Writing to the cache happens asynchronously, so that you get the function result immediately.
+* Function result and kwarg values are [pickled](https://docs.python.org/3/library/pickle.html), so you can work with complex structures like [pydantic](https://docs.pydantic.dev/latest/)'s `BaseModel`
+* Cache invalidation is available
+
+Limitations:
+* Only async functions are supported.
+* Only keyword arguments are supported. It will raise an error if you pass non-kwargs while calling your function.
