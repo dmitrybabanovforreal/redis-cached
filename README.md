@@ -2,7 +2,6 @@
 Python cache decorator that uses Redis or KeyDB as storage. This is very handy for replicated apps (e.g. Kubernetes), AWS Lambda functions, and other stateless apps.
 
 Features:
-* Writing to the cache happens asynchronously, so that you get the function result immediately.
 * Function result and kwarg values are [pickled](https://docs.python.org/3/library/pickle.html), so you can work with complex structures like [pydantic](https://docs.pydantic.dev/latest/)'s `BaseModel`
 * Cache invalidation is available
 
