@@ -1,8 +1,7 @@
 from typing import Callable, TypeVar, Coroutine, Any, ParamSpec
 import inspect, functools, hashlib, pickle
 
-from redis_cached.redis import redis
-from redis_cached.utils import fire_background_task
+from redis_cached.redis import redis, KeyNotFound
 
 
 _ParamsT = ParamSpec('_ParamsT')
@@ -27,11 +26,11 @@ def cached(ttl: int, cache_key_salt: str = ''):
             assert inspect.iscoroutinefunction(func), 'Only async functions are supported'
             assert not args, 'Only keyword arguments are supported'
             key = _get_cache_key(func_name=func.__name__, cache_key_salt=cache_key_salt, **kwargs)
-            result = await redis.get(key)
-            if not result:
+            try:
+                result = await redis.get(key)
+            except KeyNotFound:
                 result = await func(**kwargs)
-                if result:
-                    fire_background_task(redis.set(name=key, value=result, ex=ttl))
+                await redis.set(name=key, value=result, ex=ttl)
             return result
         return wrapper
 

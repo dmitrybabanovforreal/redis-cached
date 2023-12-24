@@ -4,12 +4,16 @@ import pickle, os
 from redis.asyncio.client import Redis
 
 
+class KeyNotFound(Exception):
+    pass
+
+
 class Redis_(Redis):
     async def get(self, name: str) -> Any:
         res = await super().get(name)
-        if res is not None:
-            res = pickle.loads(res)
-        return res
+        if not res:
+            raise KeyNotFound()
+        return pickle.loads(res)
 
     async def set(self,
         name: str,

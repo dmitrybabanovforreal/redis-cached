@@ -3,7 +3,7 @@ import asyncio, datetime
 import pytest
 from pydantic import BaseModel
 
-from redis_cached.redis import redis
+from redis_cached.redis import redis, KeyNotFound
 from redis_cached.core import _get_cache_key
 from redis_cached import cached, invalidate_cache
 from tests.utils import random_string
@@ -42,6 +42,31 @@ async def test_cache(random_int: int):
 
 
 @pytest.mark.asyncio(scope="session")
+async def test_cache_none_value():
+
+    @cached(5)
+    async def return_none(x):
+        return None
+
+    result = await return_none(x=2)
+    assert result is None
+    await asyncio.sleep(0.01)  # let it write to the db
+
+    key = _get_cache_key(func_name='return_none', cache_key_salt='', x=2)
+    assert await redis.exists(key) == 1
+    value = await redis.get(key)
+    assert value is None
+
+    assert await return_none(x=2) is None
+
+    doctored_value = random_string()
+    await redis.set(key, doctored_value, ex=5)
+
+    cached_result = await return_none(x=2)
+    assert cached_result == doctored_value
+
+
+@pytest.mark.asyncio(scope="session")
 async def test_cache_with_salt(random_int: int, salt: str):
 
     @cached(5, cache_key_salt=salt)
@@ -71,7 +96,8 @@ async def test_cache_invalidation(random_int: int, salt: str):
     assert await redis.get(key)
 
     await invalidate_cache(func_name=plus_random.__name__, cache_key_salt=salt, x=2)
-    assert not await redis.get(key)
+    with pytest.raises(KeyNotFound):
+        await redis.get(key)
 
 
 class TestModel(BaseModel):
