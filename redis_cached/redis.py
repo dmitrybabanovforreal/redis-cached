@@ -9,13 +9,13 @@ class KeyNotFound(Exception):
 
 
 class Redis_(Redis):
-    async def get(self, name: str) -> Any:
-        res = await super().get(name)
+    async def get_(self, name: str) -> Any:
+        res = await self.get(name)
         if not res:
             raise KeyNotFound()
         return pickle.loads(res)
 
-    async def set(self,
+    async def set_(self,
         name: str,
         value: Any,
         ex: None | int = None,
@@ -27,7 +27,7 @@ class Redis_(Redis):
         exat: Any | None = None,
         pxat: Any | None = None) -> Any:
         value = pickle.dumps(value)
-        return await super().set(
+        return await self.set(
             name=name,
             value=value,
             ex=ex,

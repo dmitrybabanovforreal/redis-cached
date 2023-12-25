@@ -1,3 +1,4 @@
+import asyncio
 from typing import Callable, TypeVar, Coroutine, Any, ParamSpec
 import inspect, functools, hashlib, pickle
 
@@ -26,12 +27,8 @@ def cached(ttl: int, cache_key_salt: str = ''):
             assert inspect.iscoroutinefunction(func), 'Only async functions are supported'
             assert not args, 'Only keyword arguments are supported'
             key = _get_cache_key(func_name=func.__name__, cache_key_salt=cache_key_salt, **kwargs)
-            try:
-                result = await redis.get(key)
-            except KeyNotFound:
-                result = await func(**kwargs)
-                await redis.set(name=key, value=result, ex=ttl)
-            return result
+            return await _get_value(key=key, func=func, kwargs=kwargs, ttl=ttl)
+
         return wrapper
 
     return decorator
@@ -49,3 +46,20 @@ def _get_cache_key(func_name: str, cache_key_salt: str, **kwargs) -> str:
         key_parts += pickle.dumps(v)
     key_hash = hashlib.sha256(key_parts).hexdigest()
     return key_hash
+
+
+async def _get_value(key: str, func: _OriginalFunc, kwargs: dict, ttl: int) -> _ReturnT:
+    while 1:
+        try:
+            return await redis.get_(key)
+        except KeyNotFound:
+            lock = redis.lock(name=f'{key}_lock', blocking=False)
+            if await lock.acquire():
+                try:
+                    result = await func(**kwargs)
+                    await redis.set_(name=key, value=result, ex=ttl)
+                finally:
+                    await lock.release()
+                return result
+            else:
+                await asyncio.sleep(0.1)
