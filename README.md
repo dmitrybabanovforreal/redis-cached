@@ -3,6 +3,7 @@ Python cache decorator that uses Redis or KeyDB as storage. This is very handy f
 
 Features:
 * Function result and kwarg values are [pickled](https://docs.python.org/3/library/pickle.html), so you can work with complex structures like [pydantic](https://docs.pydantic.dev/latest/)'s `BaseModel`
+* Prevents multiple simultaneous cache updates when a function is called concurrently and there is no cached value.
 * Cache invalidation is available
 
 Limitations:
