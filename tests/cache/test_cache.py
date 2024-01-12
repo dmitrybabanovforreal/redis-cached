@@ -162,3 +162,12 @@ async def test_simultaneous_cache_misses():
     assert other_task.result() > task1.result()
 
     assert calls['count'] == 2
+
+
+@pytest.mark.asyncio(scope="session")
+async def test_async_func_validation_at_definition_time():
+    with pytest.raises(AssertionError) as exc_info:
+        @cached(5)
+        def my_func():
+            pass
+    assert 'Only async functions are supported' in str(exc_info.value)

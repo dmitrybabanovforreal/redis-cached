@@ -11,7 +11,7 @@ _OriginalFunc = Callable[_ParamsT, Coroutine[Any, Any, _ReturnT]]
 _DecoratedFunc = Callable[_ParamsT, Coroutine[Any, Any, _ReturnT]]
 
 
-def cached(ttl: int, cache_key_salt: str = ''):
+def cached(ttl: int, cache_key_salt: str = '') -> Callable[[_OriginalFunc], _DecoratedFunc]:
     """
     Add a cache decorator to a function and specify `ttl` (time to live).
     Optionally, add `cache_key_salt` to avoid cache clashing with same-named functions.
@@ -21,10 +21,10 @@ def cached(ttl: int, cache_key_salt: str = ''):
     >>>     return x + 1
     """
     def decorator(func: _OriginalFunc) -> _DecoratedFunc:
+        assert inspect.iscoroutinefunction(func), 'Only async functions are supported'
 
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
-            assert inspect.iscoroutinefunction(func), 'Only async functions are supported'
             assert not args, 'Only keyword arguments are supported'
             key = _get_cache_key(func_name=func.__name__, cache_key_salt=cache_key_salt, **kwargs)
             return await _get_value(key=key, func=func, kwargs=kwargs, ttl=ttl)

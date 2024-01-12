@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2024-01-12
+
+### Fixed
+
+* Type annotation for the function parameters does not break when it's decorated.
+* Assertion of the function being an async function happens during function definition now (e.g. when the module is imported) rather than every time the function is called.
+
 ## [0.2.0] - 2023-12-25
 
 ### Added
