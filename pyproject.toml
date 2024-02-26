@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "redis-cached"
-version = "0.2.1"
+version = "0.3.0"
 description = "Python cache decorator and other itils with support for Redis or KeyDB"
 authors = ["Dmitry Babanov <85852989+dmitrybabanovforreal@users.noreply.github.com>"]
 readme = "README.md"

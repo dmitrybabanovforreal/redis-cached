@@ -41,11 +41,11 @@ class Redis_(Redis):
         )
 
 
-host = os.getenv('REDIS_CACHED_HOST')
+host = os.getenv('REDIS_HOST')
 assert host
 
 redis = Redis_(
     host=host,
-    port=int(os.getenv('REDIS_CACHED_PORT') or 6379),
-    db=int(os.getenv('REDIS_CACHED_DB') or 0),
+    port=int(os.getenv('REDIS_PORT') or 6379),
+    db=int(os.getenv('REDIS_DB') or 0),
 )
