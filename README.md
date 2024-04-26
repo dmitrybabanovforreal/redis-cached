@@ -22,44 +22,56 @@ Basic usage:
 
 ```python
 import asyncio
-from redis_cached import cached, invalidate_cache
+from redis_cached import Cache
 
-@cached(5)
-async def add_one(x):
-    return x + 1
+cache = Cache()
+
+@cache.cached(5)
+async def get_user_data(user_id: int):
+    # expensive API call here
+    return {'user_id': user_id, 'name': 'John Doe'}
 
 async def main():
-    result = await add_one(x=2)  # result is cached for 5 seconds
+    user_data = await get_user_data(user_id=1)  # result is cached for 5 seconds
     
-    # Pass the same kwargs to this func to invalidate the cache
-    await invalidate_cache('add_one', x=2)
+    # To invalidate the cache for the user with ID 1, pass the same kwargs:
+    await cache.invalidate_cache('get_user_data', user_id=1)
 
 asyncio.run(main())
 ```
 
 
-Optionally, add salt to the decorator to avoid clashing with the same-named functions in other modules or other apps that use the same Redis or KeyDB database:
+Optionally, add salt to `cache_key_salt` to avoid clashing with the same-named functions in other modules or other apps that use the same Redis database.
+
+You can also use your custom-configured async Redis instance with the cache.
 
 ```python
 import asyncio
-from redis_cached import cached, invalidate_cache
+from redis.asyncio.client import Redis
+from redis_cached import Cache
 
-CACHE_SALT = 'XnsJ-7C9PIU0qhDwh9YhJQ'
+custom_redis = Redis(
+    host='localhost',
+    port=6379,
+    db=0
+)
+cache = Cache(
+    cache_key_salt='qhDwh9Y',
+    redis_=custom_redis
+)
 
-@cached(5, cache_key_salt=CACHE_SALT)
-async def add_one(x):
-    return x + 1
-
-async def invalidate_add_one(**kwargs):
-    await invalidate_cache('add_one', cache_key_salt=CACHE_SALT, **kwargs)
+@cache.cached(5)
+async def get_user_data(user_id: int):
+    # expensive API call here
+    return {'user_id': user_id, 'name': 'John Doe'}
 
 async def main():
-    result = await add_one(x=2)  # cached
-    await invalidate_add_one(x=2)  # invalidated
+    user_data = await get_user_data(user_id=1)  # cached
+    await cache.invalidate_cache('get_user_data', user_id=1)  # invalidated
 
 asyncio.run(main())
 ```
 
 # Contributing
 
-Contributions are welcome. Please refer to [maintenance readme](./maintenance/README.md) for more details.
+Contributions are welcome. Please refer to the [maintenance readme](./maintenance/README.md) for more details.

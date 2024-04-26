@@ -33,7 +33,9 @@ class Cache:
         Add a cache decorator to a function and specify `ttl` (time to live).
         Optionally, add `cache_key_salt` to avoid cache clashing with same-named functions.
 
-        >>> @cached(5, cache_key_salt='xQGMMpWxfJdxC2_dLVANdg')
+        >>> cache = Cache(cache_key_salt='xfJdxC')
+        >>>
+        >>> @cache.cached(5)
         >>> async def add_one(x):
         >>>     return x + 1
         """
