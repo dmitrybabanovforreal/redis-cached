@@ -2,6 +2,6 @@
 
 set -e
 set -x
-export REDIS_CACHED_HOST="localhost"
+export REDIS_HOST="localhost"
 
 pytest tests "${@}"

@@ -1,1 +1,1 @@
-from .core import cached, invalidate_cache
+from .core import Cache
