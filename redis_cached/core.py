@@ -28,7 +28,7 @@ class Cache:
                 db=int(os.getenv('REDIS_DB') or 0),
             )
 
-    def cached(self, ttl: int) -> Callable[[_AsyncFunc], _AsyncFunc]:
+    def cached(self, ttl: int):
         """
         Add a cache decorator to a function and specify `ttl` (time to live).
         Optionally, add `cache_key_salt` to avoid cache clashing with same-named functions.
@@ -62,7 +62,7 @@ class Cache:
         key_hash = hashlib.sha256(key_parts).hexdigest()
         return key_hash
 
-    async def _get_value(self, key: str, func: Callable[_P, Coroutine[Any, Any, _R]], kwargs: dict, ttl: int) -> _R:
+    async def _get_value(self, key: str, func: _AsyncFunc, kwargs: dict, ttl: int) -> _R:
         while 1:
             try:
                 return await self._redis_get(key)
