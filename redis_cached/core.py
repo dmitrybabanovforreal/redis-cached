@@ -1,9 +1,12 @@
 from typing import Callable, TypeVar, Coroutine, Any, ParamSpec, TypeAlias
-import asyncio, inspect, functools, hashlib, pickle, os
+import asyncio, inspect, functools, hashlib, pickle, os, logging
 
 from redis.asyncio.client import Redis
 
+from redis_cached.utils import lock_release_retry
 
+
+logger = logging.getLogger('redis_cached')
 _P = ParamSpec('_P')
 _R = TypeVar('_R')
 _AsyncFunc: TypeAlias = Callable[_P, Coroutine[Any, Any, _R]]
@@ -14,8 +17,14 @@ class KeyNotFound(Exception):
 
 
 class Cache:
-    def __init__(self, cache_key_salt: str = '', redis_: Redis = None):
+    def __init__(
+        self,
+        cache_key_salt: str = '',
+        redis_: Redis = None,
+        cache_refresh_lock_timeout: int = 5
+    ):
         self.cache_key_salt = cache_key_salt
+        self.cache_refresh_lock_timeout = cache_refresh_lock_timeout
         if redis_:
             assert isinstance(redis_, Redis), '`redis_` has to be an instance of redis.asyncio.client.Redis'
             self.redis = redis_
@@ -65,18 +74,20 @@ class Cache:
         return key_hash
 
     async def _get_value(self, key: str, func: _AsyncFunc, kwargs: dict, ttl: int) -> _R:
-        while 1:
+        while True:
             try:
                 return await self._redis_get(key)
             except KeyNotFound:
-                lock = self.redis.lock(name=f'{key}_lock', blocking=False)
+                lock_key = f'{key}_lock'
+                lock = self.redis.lock(name=lock_key, blocking=False, timeout=self.cache_refresh_lock_timeout)
                 if await lock.acquire():
                     try:
                         result = await func(**kwargs)
                         await self._redis_set(name=key, value=result, ex=ttl)
+                        return result
                     finally:
-                        await lock.release()
-                    return result
+                        if not await lock_release_retry(lock):
+                            logger.error(f'Failed to release cache refresh lock for {lock_key}')
                 else:
                     await asyncio.sleep(0.1)
 

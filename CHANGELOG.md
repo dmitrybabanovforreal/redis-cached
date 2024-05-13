@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2024-04-26
+
+### Fixed
+
+* In rare cases, because of Redis replication not being fast enough, a cache refresh lock may be acquired but appear not owned on an attempt to release it. Now it will make several attempts to release it. The lock itself now has an expiration time in case it is never released successfully.
+
+### Added
+
+* You can optionally configure the timeout for the cache refresh lock.
+
 ## [0.4.0] - 2024-04-26
 
 ### Added
