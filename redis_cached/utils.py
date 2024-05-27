@@ -1,7 +1,7 @@
 import asyncio
 
 from redis.asyncio.lock import Lock
-from redis.exceptions import LockNotOwnedError
+from redis.exceptions import LockNotOwnedError, LockError
 
 
 async def lock_release_retry(lock: Lock) -> bool:
@@ -12,4 +12,8 @@ async def lock_release_retry(lock: Lock) -> bool:
             return True
         except LockNotOwnedError:
             await asyncio.sleep(0.1)
+        except LockError as e:
+            if 'Cannot release an unlocked lock' in str(e):
+                break
+            raise e
     return False
