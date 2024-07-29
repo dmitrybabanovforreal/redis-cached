@@ -14,6 +14,6 @@ async def lock_release_retry(lock: Lock) -> bool:
             await asyncio.sleep(0.1)
         except LockError as e:
             if 'Cannot release an unlocked lock' in str(e):
-                break
+                return True
             raise e
     return False

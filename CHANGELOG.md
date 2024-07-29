@@ -5,11 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.3] - 2024-07-29
+
+### Fixed
+
+* Do not log an error message for trying to release an unlocked lock
+
 ## [0.4.2] - 2024-05-27
 
 ### Fixed
 
-* Added error handling for attempting to releasing an unlocked lock (e.g. when it was unlocked by timeout)
+* Added error handling for attempting to release an unlocked lock (e.g. when it was unlocked by timeout)
 
 ## [0.4.1] - 2024-04-26
 
