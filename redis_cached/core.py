@@ -2,6 +2,7 @@ from typing import Callable, TypeVar, Coroutine, Any, ParamSpec, TypeAlias
 import asyncio, inspect, functools, hashlib, pickle, os, logging
 
 from redis.asyncio.client import Redis
+from redis.exceptions import OutOfMemoryError
 
 from redis_cached.utils import lock_release_retry
 
@@ -99,4 +100,7 @@ class Cache:
 
     async def _redis_set(self, name: str, value: Any, ex: None | int = None) -> None:
         value = pickle.dumps(value)
-        await self.redis.set(name=name, value=value, ex=ex)
+        try:
+            await self.redis.set(name=name, value=value, ex=ex)
+        except OutOfMemoryError:
+            logger.warning('Redis returned OutOfMemoryError; the result has not been cached.')
