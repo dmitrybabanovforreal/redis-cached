@@ -9,7 +9,6 @@ from redis_cached.core import KeyNotFound, Cache
 from tests.utils import random_string
 
 
-@pytest.mark.asyncio(scope="session")
 async def test_redis_connection():
     key = random_string()
     data = random_string()
@@ -18,7 +17,6 @@ async def test_redis_connection():
     assert await cache._redis_get(key) == data
 
 
-@pytest.mark.asyncio(scope="session")
 async def test_cache(random_int: int):
     cache = Cache()
 
@@ -43,7 +41,6 @@ async def test_cache(random_int: int):
     assert cached_result == doctored_value
 
 
-@pytest.mark.asyncio(scope="session")
 async def test_cache_none_value():
     cache = Cache()
 
@@ -69,7 +66,6 @@ async def test_cache_none_value():
     assert cached_result == doctored_value
 
 
-@pytest.mark.asyncio(scope="session")
 async def test_cache_with_salt(random_int: int, salt: str):
     cache = Cache(cache_key_salt=salt)
 
@@ -86,7 +82,6 @@ async def test_cache_with_salt(random_int: int, salt: str):
     assert value == 2 + random_int
 
 
-@pytest.mark.asyncio(scope="session")
 async def test_cache_invalidation(random_int: int, salt: str):
     cache = Cache(cache_key_salt=salt)
 
@@ -110,7 +105,6 @@ class TestModel(BaseModel):
     dt: datetime.datetime
 
 
-@pytest.mark.asyncio(scope="session")
 async def test_pydantic_serialization(random_int: int, salt: str):
     cache = Cache(cache_key_salt=salt)
 
@@ -141,7 +135,6 @@ async def test_pydantic_serialization(random_int: int, salt: str):
     assert obj.x == another_x + random_int
 
 
-@pytest.mark.asyncio(scope="session")
 async def test_simultaneous_cache_misses():
     # Tests that in situation of simultaneous cache misses
     # (e.g. from concurrent calls with the same arguments),
@@ -171,7 +164,6 @@ async def test_simultaneous_cache_misses():
     assert calls['count'] == 2
 
 
-@pytest.mark.asyncio(scope="session")
 async def test_async_func_validation_at_definition_time():
     cache = Cache()
     with pytest.raises(AssertionError) as exc_info:
@@ -181,7 +173,6 @@ async def test_async_func_validation_at_definition_time():
     assert 'Only async functions are supported' in str(exc_info.value)
 
 
-@pytest.mark.asyncio(scope="session")
 async def test_redis_instance_validation():
     with pytest.raises(AssertionError) as exc_info:
         Cache(redis_=SyncRedis(
@@ -193,7 +184,6 @@ async def test_redis_instance_validation():
     assert '`redis_` has to be an instance of redis.asyncio.client.Redis' in str(exc_info.value)
 
 
-@pytest.mark.asyncio(scope="session")
 async def test_cache_with_custom_redis(random_int: int):
     custom_redis = Redis(
         host=os.getenv('REDIS_HOST'),
